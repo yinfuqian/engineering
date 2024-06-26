@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Display</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            font-size: 21.33px; /* 字体大小增加1/3 */
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 26.67px; /* 内边距增加1/3 */
+            border-radius: 10.67px; /* 圆角增加1/3 */
+            box-shadow: 0 0 13.33px rgba(0, 0, 0, 0.1); /* 阴影增加1/3 */
+        }
+
+        h1 {
+            margin-bottom: 26.67px; /* 底边距增加1/3 */
+            font-size: 1.33em; /* 标题字体大小增加1/3 */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label, input {
+            margin: 13.33px 0; /* 间距增加1/3 */
+            width: 100%;
+        }
+
+        input {
+            padding: 10.67px; /* 内边距增加1/3 */
+            border: 1.33px solid #ccc; /* 边框宽度增加1/3 */
+            border-radius: 5.33px; /* 圆角增加1/3 */
+            font-size: 1em; /* 字体大小增加1/3 */
+        }
+
+        button {
+            padding: 13.33px 26.67px; /* 内边距增加1/3 */
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5.33px; /* 圆角增加1/3 */
+            cursor: pointer;
+            margin-top: 13.33px; /* 顶边距增加1/3 */
+            font-size: 1em; /* 字体大小增加1/3 */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 26.67px; /* 顶边距增加1/3 */
+            text-align: left;
+        }
+
+        p {
+            margin: 6.67px 0; /* 间距增加1/3 */
+            font-size: 1em; /* 字体大小增加1/3 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Display</h1>
+        <form id="dataForm">
+            <label for="sheet_name">名称（例：150LB）</label>
+            <input type="text" id="sheet_name" name="sheet_name">
+            <br>
+            <label for="in">通经(例0.5)</label>
+            <input type="text" id="in" name="in">
+            <br>
+            <button type="submit">提交查询</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#dataForm').on('submit', function(event) {
+                event.preventDefault();
+                var formData = {
+                    'sheet_name': $('#sheet_name').val().trim().toUpperCase(), //转换为大写
+                    'in': $('#in').val().trim().toString()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/post',
+                    data: formData,
+                    dataType: 'json',
+                    success: function(data) {
+                        var resultDiv = $('#result');
+                        resultDiv.empty(); // 清空结果区域
+                        if (data.error) {
+                            resultDiv.append('<p>' + data.error + '</p>');
+                        } else {
+                            for (var key in data) {
+                                if (data.hasOwnProperty(key)) {
+                                    resultDiv.append('<p><strong>' + key + ':</strong> ' + data[key] + '</p>');
+                                }
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
