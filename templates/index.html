@@ -34,16 +34,20 @@
             align-items: center;
         }
 
-        label, input {
+        label {
             margin: 13.33px 0; /* 间距增加1/3 */
             width: 100%;
+            text-align: left; /* 文字左对齐 */
+            display: flex;
+            align-items: center; /* 垂直居中对齐 */
         }
 
-        input {
-            padding: 10.67px; /* 内边距增加1/3 */
+        select, input[type="text"] {
+            padding: 7.5px; /* 内边距统一设置 */
             border: 1.33px solid #ccc; /* 边框宽度增加1/3 */
             border-radius: 5.33px; /* 圆角增加1/3 */
-            font-size: 1em; /* 字体大小增加1/3 */
+            font-size: 1.1em; /* 字体大小稍微增大 */
+            width: 70%; /* 调整输入框宽度 */
         }
 
         button {
@@ -55,6 +59,7 @@
             cursor: pointer;
             margin-top: 13.33px; /* 顶边距增加1/3 */
             font-size: 1em; /* 字体大小增加1/3 */
+            width: 70%; /* 调整按钮宽度 */
         }
 
         button:hover {
@@ -70,56 +75,132 @@
             margin: 6.67px 0; /* 间距增加1/3 */
             font-size: 1em; /* 字体大小增加1/3 */
         }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: left;
+            margin-top: 0px; /* 顶边距增加一半 */
+        }
+
+        .radio-group label {
+            width: 50%;
+            display: flex;
+            align-items: center; /* 垂直居中对齐 */
+            border: 1px solid #ccc; /* 添加边框 */
+            border-radius: 5px; /* 圆角 */
+            padding: 10px; /* 内边距 */
+            margin: 5px; /* 外边距 */
+        }
+
+
+
+        .radio-group input {
+            margin-left: 10px; /* 调整单选按钮与文字之间的间距 */
+        }
+
+        #in {
+            margin-top: -47px; /* 往上调整 */
+            margin-left: -100px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Data Display</h1>
-        <form id="dataForm">
-            <label for="sheet_name">名称（例：150LB）</label>
-            <input type="text" id="sheet_name" name="sheet_name">
-            <br>
-            <label for="in">通经(例0.5)</label>
-            <input type="text" id="in" name="in">
-            <br>
-            <button type="submit">提交查询</button>
-        </form>
-        <div id="result"></div>
-    </div>
+<div class="container">
+    <h1>Data Display</h1>
+    <form id="dataForm">
+        <label for="sheet_name">压力等级选择</label>
+        <div class="radio-group">
+            {% for name in sheet_names %}
+            <label>
+                {{ name }}
+                <input type="radio" name="sheet_name" value="{{ name }}">
+            </label>
+            {% endfor %}
+        </div>
+        <br>
+        <label for="in">公称通径选择(in)</label>
+        <select id="in" name="in">
+            <option value="0.5">0.5</option>
+            <option value="0.75">0.75</option>
+            <option value="1.25">1.25</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2</option>
+            <option value="2.5">2.5</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20">20</option>
+            <option value="24">24</option>
+            <!-- 添加更多选项 -->
+        </select>
+        <br>
+        <button type="submit">提交查询</button>
+    </form>
+    <div id="result"></div>
+</div>
 
-    <script>
-        $(document).ready(function() {
-            $('#dataForm').on('submit', function(event) {
-                event.preventDefault();
-                var formData = {
-                    'sheet_name': $('#sheet_name').val().trim().toUpperCase(), //转换为大写
-                    'in': $('#in').val().trim().toString()
-                };
+<script>
+   $(document).ready(function() {
+    $('#dataForm').on('submit', function(event) {
+        event.preventDefault();
+        var formData = {
+            'sheet_name': $('input[name="sheet_name"]:checked').val(),
+            'in': $('#in').val().trim().toString()
+        };
 
-                $.ajax({
-                    type: 'POST',
-                    url: '/post',
-                    data: formData,
-                    dataType: 'json',
-                    success: function(data) {
-                        var resultDiv = $('#result');
-                        resultDiv.empty(); // 清空结果区域
-                        if (data.error) {
-                            resultDiv.append('<p>' + data.error + '</p>');
-                        } else {
-                            for (var key in data) {
-                                if (data.hasOwnProperty(key)) {
-                                    resultDiv.append('<p><strong>' + key + ':</strong> ' + data[key] + '</p>');
-                                }
-                            }
-                        }
-                    },
-                    error: function(error) {
-                        console.log('Error:', error);
+        $.ajax({
+            type: 'POST',
+            url: '/post',
+            data: formData,
+            dataType: 'json',
+            success: function(data) {
+                var resultDiv = $('#result');
+                resultDiv.empty(); // 清空结果区域
+
+                if (data.error) {
+                    resultDiv.append('<p>' + data.error + '</p>');
+                } else {
+                    // 按照特定顺序显示结果
+                    if (data.hasOwnProperty('法兰外径')) {
+                        resultDiv.append('<p><strong>法兰外径:</strong> ' + data['法兰外径'] + '</p>');
                     }
-                });
-            });
+                    // 其他结果按照键名排序
+                    var orderedKeys = Object.keys(data).sort(function(a, b) {
+                        // 将固定式球阀长度放在最后
+                        if (a === '法兰外径') return -1;
+                        if (b === '法兰外径') return 1;
+                        if (a === '固定式球阀长度') return 1;
+                        if (b === '固定式球阀长度') return -1;
+                        return 0;
+                    });
+
+                    orderedKeys.forEach(function(key) {
+                        if (key !== '法兰外径' && key !== '固定式球阀长度') {
+                            resultDiv.append('<p><strong>' + key + ':</strong> ' + data[key] + '</p>');
+                        }
+                    });
+
+                    // 显示固定式球阀长度
+                    if (data.hasOwnProperty('固定式球阀长度')) {
+                        resultDiv.append('<p><strong>固定式球阀长度:</strong> ' + data['固定式球阀长度'] + '</p>');
+                    }
+                }
+            },
+            error: function(error) {
+                console.log('Error:', error);
+            }
         });
-    </script>
+    });
+});
+
+</script>
 </body>
 </html>
