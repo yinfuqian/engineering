@@ -151,6 +151,7 @@
                 grid-template-columns: 1fr; /* 窗口宽度小于400px时，1列布局 */
             }
         }
+
     </style>
 </head>
 <body>
@@ -198,83 +199,74 @@
     <div>本数据引用自ASME B 16.5-2020,向先忠13750908135搜集整理，仅供参考，具体以原标准为准</div>
     <div>备案号:蜀ICP备2024086737号-1</div>
     <div id="result"></div>
+    <!-- 模态框 -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalResult"></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    $(document).ready(function () {
-        $('#dataForm').on('submit', function (event) {
-            event.preventDefault();
-            var formData = {
-                'sheet_name': $('input[name="sheet_name"]:checked').val(),
-                'in': $('#in').val().trim().toString()
-            };
+   $(document).ready(function() {
+    $('#dataForm').on('submit', function(event) {
+        event.preventDefault();
+        var formData = {
+            'sheet_name': $('input[name="sheet_name"]:checked').val(),
+            'in': $('#in').val().trim().toString()
+        };
 
-            $.ajax({
-                type: 'POST',
-                url: '/post',
-                data: formData,
-                dataType: 'json',
-                success: function (data) {
-                    var resultDiv = $('#result');
-                    resultDiv.empty(); // 清空结果区域
+        $.ajax({
+            type: 'POST',
+            url: '/post',
+            data: formData,
+            dataType: 'json',
+            success: function(data) {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // 创建新窗口
+                    var newWindow = window.open("", "结果", "width=600,height=400");
 
-                    if (data.error) {
-                        resultDiv.append('<p>' + data.error + '</p>');
-                    } else {
-                        var table = $('<table></table>').css({
-                            'width': '100%',
-                            'border-collapse': 'collapse'
-                        });
+                    // 新窗口内容
+                    var tableHTML = '<html><head><title>查询结果</title><style>' +
+                        'table { width: 100%; border-collapse: collapse; }' +
+                        'th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }' +
+                        'th { background-color: #f4f4f4; }' +
+                        '</style></head><body>' +
+                        '<table>' +
+                        '<thead><tr><th>属性</th><th>值</th></tr></thead>' +
+                        '<tbody>';
 
-                        var thead = $('<thead></thead>');
-                        var headerRow = $('<tr></tr>');
-                        headerRow.append('<th>属性</th>');
-                        headerRow.append('<th>值</th>');
-                        thead.append(headerRow);
-                        table.append(thead);
+                    var orderedKeys = Object.keys(data).sort(function(a, b) {
+                        if (a === '法兰外径') return -1;
+                        if (b === '法兰外径') return 1;
+                        if (a === '固定式球阀长度') return 1;
+                        if (b === '固定式球阀长度') return -1;
+                        return 0;
+                    });
 
-                        var tbody = $('<tbody></tbody>');
-                        var orderedKeys = Object.keys(data).sort(function (a, b) {
-                            if (a === '法兰外径') return -1;
-                            if (b === '法兰外径') return 1;
-                            if (a === '固定式球阀长度') return 1;
-                            if (b === '固定式球阀长度') return -1;
-                            return 0;
-                        });
+                    orderedKeys.forEach(function(key) {
+                        tableHTML += '<tr><td>' + key + '</td><td>' + data[key] + '</td></tr>';
+                    });
 
-                        orderedKeys.forEach(function (key) {
-                            if (key !== '法兰外径' && key !== '固定式球阀长度') {
-                                var row = $('<tr></tr>');
-                                row.append('<td>' + key + '</td>');
-                                row.append('<td>' + data[key] + '</td>');
-                                tbody.append(row);
-                            }
-                        });
+                    tableHTML += '</tbody></table></body></html>';
 
-                        if (data.hasOwnProperty('法兰外径')) {
-                            var row = $('<tr></tr>');
-                            row.append('<td>法兰外径</td>');
-                            row.append('<td>' + data['法兰外径'] + '</td>');
-                            tbody.append(row);
-                        }
-
-                        if (data.hasOwnProperty('固定式球阀长度')) {
-                            var row = $('<tr></tr>');
-                            row.append('<td>固定式球阀长度</td>');
-                            row.append('<td>' + data['固定式球阀长度'] + '</td>');
-                            tbody.append(row);
-                        }
-
-                        table.append(tbody);
-                        resultDiv.append(table);
-                    }
-                },
-                error: function (error) {
-                    console.log('Error:', error);
+                    // 将内容写入新窗口
+                    newWindow.document.write(tableHTML);
+                    newWindow.document.close();
                 }
-            });
+            },
+            error: function(error) {
+                console.log('Error:', error);
+            }
         });
     });
+});
+
+
 </script>
 </body>
 </html>
