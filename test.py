@@ -17,7 +17,8 @@ key_translation = {
     "p": "环中心",
     "fe": "水线高度_槽深",
     "fl": "槽宽",
-    "nr": "八角环槽底"
+    "nr": "八角环槽底",
+    "sn": "压力等级",
 }
 
 
@@ -28,8 +29,27 @@ def index():
         data = json.load(file)
     sheet_names = [sheet['sheet_name'] for sheet in data]
 
-    return render_template('index.html', sheet_names=sheet_names)
+    # 从 JSON 文件中提取所有的 sheet_name
+    sheet_names = [sheet['sheet_name'] for sheet in data]
 
+    # 分组和排序
+    RJ_names = sorted([name for name in sheet_names if 'RJ' in name])
+    RF_names = sorted([name for name in sheet_names if 'RF' in name])
+    print(RF_names, RF_names)
+    return render_template('index.html', RJ_names=RJ_names, RF_names=RF_names)
+
+
+@app.route('/sheet_names')
+def sheet_names():
+    with open('output.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    sheet_names = [sheet['sheet_name'] for sheet in data]
+
+    # 排序
+    sorted_sheet_names = sorted(sheet_names, key=lambda x: int(''.join(filter(str.isdigit, x))))
+
+    return jsonify(sorted_sheet_names)
 
 @app.route('/post', methods=['POST'])
 def post():
