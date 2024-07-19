@@ -318,6 +318,9 @@
                         // 将内容写入新窗口
                         newWindow.document.write(tableHTML);
                         newWindow.document.close();
+			
+			 // 聚焦新窗口
+                    newWindow.focus();
                     }
                 },
                 error: function (error) {
