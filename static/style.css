@@ -133,7 +133,7 @@ button:hover {
 
 .header p:nth-of-type(2) {
     font-size: 0.8em; /* 字体大小减小 */
-    color: red; /* 颜色设为红色 */
+    color: blue; /* 颜色设为红色 */
 }
 
 .footer p {
